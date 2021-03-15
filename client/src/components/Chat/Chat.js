@@ -1,70 +1,71 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import socket from '../../socket';
 
+
 const Chat = ({ display, roomId }) => {
-  const currentUser = sessionStorage.getItem('user');
-  const [msg, setMsg] = useState([]);
-  const messagesEndRef = useRef(null);
-  const inputRef = useRef();
-  
-  useEffect(() => {
-    socket.on('FE-receive-message', ({ msg, sender }) => {
-      setMsg((msgs) => [...msgs, { sender, msg }]);
-    });
-  }, []);
+    const currentUser = sessionStorage.getItem('user');
+    const [msg, setMsg] = useState([]);
+    const messagesEndRef = useRef(null);
+    const inputRef = useRef();
 
-  // Scroll to Bottom of Message List
-  useEffect(() => {scrollToBottom()}, [msg])
+    useEffect(() => {
+        socket.on('FE-receive-message', ({ msg, sender }) => {
+            setMsg((msgs) => [...msgs, { sender, msg }]);
+        });
+    }, []);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current.scrollIntoView({ behavior: 'smooth'});
-  }
+    // Scroll to Bottom of Message List
+    useEffect(() => {scrollToBottom();}, [msg]);
 
-  const sendMessage = (e) => {
-    if (e.key === 'Enter') {
-      const msg = e.target.value;
+    const scrollToBottom = () => {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    };
 
-      if (msg) {
-        socket.emit('BE-send-message', { roomId, msg, sender: currentUser });
-        inputRef.current.value = '';
-      }
-    }
-  };
+    const sendMessage = (e) => {
+        if (e.key === 'Enter') {
+            const msg = e.target.value;
 
-  return (
-    <ChatContainer className={display ? '' : 'width0'}>
-      <TopHeader>Group Chat Room</TopHeader>
-      <ChatArea>
-        <MessageList>
-          {msg &&
-            msg.map(({ sender, msg }, idx) => {
-              if (sender !== currentUser) {
-                return (
-                  <Message key={idx}>
-                    <strong>{sender}</strong>
-                    <p>{msg}</p>
-                  </Message>
-                );
-              } else {
-                return (
-                  <UserMessage key={idx}>
-                    <strong>{sender}</strong>
-                    <p>{msg}</p>
-                  </UserMessage>
-                );
-              }
-            })}
-            <div style={{float:'left', clear: 'both'}} ref={messagesEndRef} />
-        </MessageList>
-      </ChatArea>
-      <BottomInput
-        ref={inputRef}
-        onKeyUp={sendMessage}
-        placeholder="Enter your message"
-      />
-    </ChatContainer>
-  );
+            if (msg) {
+                socket.emit('BE-send-message', { roomId, msg, sender: currentUser });
+                inputRef.current.value = '';
+            }
+        }
+    };
+
+    return (
+        <ChatContainer className={display ? '' : 'width0'}>
+            <TopHeader>Group Chat Room</TopHeader>
+            <ChatArea>
+                <MessageList>
+                    {msg &&
+                    msg.map(({ sender, msg }, idx) => {
+                        if (sender !== currentUser) {
+                            return (
+                                <Message key={idx}>
+                                    <strong>{sender}</strong>
+                                    <p>{msg}</p>
+                                </Message>
+                            );
+                        } else {
+                            return (
+                                <UserMessage key={idx}>
+                                    <strong>{sender}</strong>
+                                    <p>{msg}</p>
+                                </UserMessage>
+                            );
+                        }
+                    })}
+                    <div style={{ float: 'left', clear: 'both' }} ref={messagesEndRef}/>
+                </MessageList>
+            </ChatArea>
+            <BottomInput
+                ref={inputRef}
+                onKeyUp={sendMessage}
+                placeholder="Enter your message"
+            />
+        </ChatContainer>
+    );
 };
 
 const ChatContainer = styled.div`

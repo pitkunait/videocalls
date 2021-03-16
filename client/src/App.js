@@ -1,15 +1,17 @@
 import React from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import Main from './components/Main/Main';
-import Room from './components/Room/Room';
 import styled from 'styled-components';
 
+import LandingPage from "./pages/LandingPage/LandingPage";
+import Main from './pages/Main/Main';
+import Room from './pages/Room/Room';
 
 function App() {
     return (
         <BrowserRouter>
             <AppContainer>
                 <Switch>
+                    <Route exact path="/" component={LandingPage}/>
                     <Route exact path="/" component={Main}/>
                     <Route exact path="/room/:roomId" component={Room}/>
                 </Switch>

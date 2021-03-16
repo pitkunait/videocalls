@@ -2,9 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import Peer from 'simple-peer';
 import styled from 'styled-components';
 import socket from '../../socket';
-import VideoCard from '../Video/VideoCard';
-import BottomBar from '../BottomBar/BottomBar';
-import Chat from '../Chat/Chat';
+import VideoCard from '../../components/Video/VideoCard';
+import BottomBar from '../../components/BottomBar/BottomBar';
+import Chat from '../../components/Chat/Chat';
 
 
 const Room = (props) => {

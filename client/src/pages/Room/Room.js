@@ -317,7 +317,7 @@ const Room = (props) => {
                             muted
                             autoPlay
                             playInline
-                        ></MyVideo>
+                        />
                     </VideoBox>
                     {/* Joined User Vidoe */}
                     {peers &&

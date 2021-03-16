@@ -4,6 +4,7 @@ import Slide from "react-reveal/Slide";
 import React from "react";
 
 import SvgIcon from "../../common/SvgIcon";
+import Button from "../../common/Button";
 import * as S from "./styles";
 
 const LeftContentBlock = ({ icon, title, content, section, t, id }) => {

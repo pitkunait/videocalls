@@ -1,6 +1,9 @@
+import React from 'react';
+
 import styled from 'styled-components';
 
-export const Button = styled.button`
+
+export const StyledButton = styled.button`
   background: ${(props) => props.color || '#2e186a'};
   color: ${(props) => (props.color ? '#2E186A' : '#fff')};
   font-size: 1rem;
@@ -11,7 +14,7 @@ export const Button = styled.button`
   height: 60px;
   outline: none;
   cursor: pointer;
-  margin-top: 0.625rem;
+  margin: 0.625rem;
   max-width: 180px;
 
   @media only screen and (max-width: 1024px) {
@@ -26,3 +29,12 @@ export const Button = styled.button`
     width: ${(props) => (props.width ? '130px' : '100%')};
   }
 `;
+
+
+const Button = ({ color, width, children, onClick }) => (
+    <StyledButton color={color} width={width} onClick={onClick}>
+      {children}
+    </StyledButton>
+);
+
+export default Button;

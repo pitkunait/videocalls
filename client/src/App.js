@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import LandingPage from "./pages/LandingPage/LandingPage";
 import Main from './pages/Main/Main';
 import Room from './pages/Room/Room';
-import Container from "./common/Container";
+import Container from "./components/shared/Container/Container";
 
 function App() {
     return (

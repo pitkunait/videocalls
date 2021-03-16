@@ -1,63 +1,41 @@
 import React from 'react';
 
-import LeftContentBlock from "../../components/LeftContentBlock";
-import Container from "../../common/Container";
-import SvgIcon from "../../common/SvgIcon";
-import Button from "../../common/Button";
-import {Col, Row} from "antd";
-import Slide from "react-reveal/Slide";
-import * as S from "../../components/LeftContentBlock/styles";
-import Main from "../Main/Main";
+import Container from '../../components/shared/Container/Container';
+import SvgIcon from '../../components/shared/SvgIcon/SvgIcon';
+import Button from '../../components/shared/Button/Button';
+import { Col, Row } from 'antd';
+import Slide from 'react-reveal/Slide';
+import styled from 'styled-components';
 
-const id = "intro";
-const icon = "developer.svg";
-const title = "A simple communication service for those who are not tech savvy.";
-const content =  "By focusing on the accessibility aspect of self-moderated chat rooms we tackle loneliness, together.";
-const section = "";
+
+const icon = 'developer.svg';
+const title = 'A simple communication service for those who are not tech savvy.';
+const content = 'By focusing on the accessibility aspect of self-moderated chat rooms we tackle loneliness, together.';
 
 const LandingPage = (props) => {
     return (
         <Container>
-            <Row type="flex" justify="space-between" align="middle" id={id}>
-                <Col lg={11} md={11} sm={12} xs={24}>
+            <Row type="flex" justify="space-between" align="middle">
+                <Col lg={11} md={11} sm={24} xs={24}>
                     <Slide left>
                         <SvgIcon
                             src={icon}
                             className="about-block-image"
-                            width="100%"
-                            height="100%"
+                            // width="100%"
+                            // height="100%"
                         />
                     </Slide>
                 </Col>
-                <Col lg={11} md={11} sm={11} xs={24}>
+                <Col lg={11} md={11} sm={24} xs={24}>
                     <Slide right>
-                        <S.ContentWrapper>
+                        <ContentWrapper>
                             <h6>{title}</h6>
-                            <S.Content>{content}</S.Content>
-                            <S.ServiceWrapper>
-                                <Row type="flex" justify="space-between">
-                                    {section &&
-                                    typeof section === "object" &&
-                                    section.map((item, id) => {
-                                        return (
-                                            <Col key={id} span={11}>
-                                                <SvgIcon src={item.icon} width="60px" height="60px" />
-                                                <S.MinTitle>{t(item.title)}</S.MinTitle>
-                                                <S.MinPara>{t(item.content)}</S.MinPara>
-                                            </Col>
-                                        );
-                                    })}
-                                </Row>
-                            </S.ServiceWrapper>
-                        </S.ContentWrapper>
-                    </Slide>
-                </Col>
-                <Col lg={11} md={11} sm={11} xs={24}>
-                    <Slide left>
-                        <S.ButtonWrapper>
-                            <Button onClick={()=>{props.history.push('/main')}}> Create Chat Room </Button>
+                            <Content>{content}</Content>
+                        </ContentWrapper>
+                        <ButtonWrapper>
+                            <Button onClick={() => {props.history.push('/main');}}> Create Chat Room </Button>
                             <Button> Join Chat Room </Button>
-                        </S.ButtonWrapper>
+                        </ButtonWrapper>
                     </Slide>
                 </Col>
             </Row>
@@ -66,3 +44,24 @@ const LandingPage = (props) => {
 };
 
 export default LandingPage;
+
+
+export const Content = styled.p`
+  margin: 1.5rem 0 2rem 0;
+`;
+
+export const ContentWrapper = styled.div`
+  text-align: center;
+  margin-top: 2rem;
+  
+  @media only screen and (max-width: 480px) {
+    margin: 2rem 0;
+  }
+`;
+
+export const ButtonWrapper = styled.div`
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+`;
+

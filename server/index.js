@@ -45,7 +45,7 @@ io.on('connection', (socket) => {
 
         io.sockets.in(roomId).clients((err, clients) => {
             clients.forEach((client) => {
-                if (socketList[client] == userName) {
+                if (socketList[client] === userName) {
                     error = true;
                 }
             });

@@ -98,7 +98,7 @@ const Main = (props) => {
                     <Label> Or join Available:</Label>}
 
                     {Object.entries(rooms).map(([i, k], index) => <div key={index}>
-                        <AvailableRoom to={`/room/room_${i}`}>"{i}" with {k.length} users</AvailableRoom>
+                        <Link to={`/room/room_${i}`}> "{i}" with {k.length} users</Link>
                         </div>)}
                 </FormGroup>
             </Row>

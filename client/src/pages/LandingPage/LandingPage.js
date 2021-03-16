@@ -1,21 +1,54 @@
 import React from 'react';
 
-import IntroContent from "../../contentent/IntroContent.json";
-import LeftContentBlock from "../../components/LeftContentBlock";
-import Container from "../../components/Container";
+import Container from '../../components/shared/Container/Container';
+import SvgIcon from '../../components/shared/SvgIcon/SvgIcon';
+import Button from '../../components/shared/Button/Button';
+import { Col, Row } from 'antd';
+import Slide from 'react-reveal/Slide';
+import styled from 'styled-components';
+import { texts } from '../../locale/locale';
 
-const LandingPage = () => {
+const LandingPage = (props) => {
     return (
         <Container>
-            <LeftContentBlock
-                first="true"
-                title={IntroContent.title}
-                content={IntroContent.text}
-                icon="developer.svg"
-                id="intro"
-            />
+            <Row type="flex" justify="space-between" align="middle">
+                <Col lg={11} md={11} sm={24} xs={24}>
+                    <Slide left>
+                        <SvgIcon src={'developer.svg'} />
+                    </Slide>
+                </Col>
+                <Col lg={11} md={11} sm={24} xs={24}>
+                    <Slide right>
+                        <ContentWrapper>
+                            <h6>{texts.english.title}</h6>
+                            <Content>{texts.english.content}</Content>
+                        </ContentWrapper>
+                        <ButtonWrapper>
+                            <Button onClick={() => {props.history.push('/main');}}>Create Chat Room</Button>
+                            <Button>Join Chat Room</Button>
+                        </ButtonWrapper>
+                    </Slide>
+                </Col>
+            </Row>
         </Container>
     );
 };
 
 export default LandingPage;
+
+
+export const Content = styled.p`
+  margin: 1.5rem 0 2rem 0;
+`;
+
+export const ContentWrapper = styled.div`
+  text-align: center;
+  margin-top: 2rem;
+`;
+
+export const ButtonWrapper = styled.div`
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+`;
+

@@ -1,12 +1,11 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import socket from '../../socket';
-import {Link} from 'react-router-dom';
-import {Col} from "antd";
-import SvgIcon from "../../components/shared/SvgIcon/SvgIcon";
-import Slide from "react-reveal/Slide";
-import {texts} from "../../locale/locale";
-import {Content, ContentWrapper} from "../LandingPage/LandingPage";
+import { Link } from 'react-router-dom';
+import { Col } from 'antd';
+import SvgIcon from '../../components/shared/SvgIcon/SvgIcon';
+import Slide from 'react-reveal/Slide';
+
 
 const Main = (props) => {
     const roomRef = useRef();
@@ -29,7 +28,7 @@ const Main = (props) => {
         socket.emit('list-rooms');
 
 
-        socket.on('FE-error-user-exist', ({error}) => {
+        socket.on('FE-error-user-exist', ({ error }) => {
             if (!error) {
                 const roomName = `room_${roomRef.current.value}`;
                 const userName = userRef.current.value;
@@ -51,7 +50,7 @@ const Main = (props) => {
             setErr(true);
             setErrMsg('Enter Room Name or User Name');
         } else {
-            socket.emit('BE-check-user', {roomId: `room_${roomName}`, userName});
+            socket.emit('BE-check-user', { roomId: `room_${roomName}`, userName });
         }
     }
 
@@ -60,7 +59,7 @@ const Main = (props) => {
             <Row type="flex" justify="space-between" align="middle">
                 <Col lg={24} md={24} sm={24}>
                     <Slide left>
-                        <SvgIcon src={"developer.svg"}/>
+                        <SvgIcon src={'developer.svg'}/>
                     </Slide>
                 </Col>
             </Row>
@@ -81,28 +80,34 @@ const Main = (props) => {
 
             </Row>
 
-            <CreateButton onClick={clickJoin}> Create a Room</CreateButton>
-            {err ? <Error>{errMsg}</Error> : null}
+            <Slide bottom>
+                <>
+                    <CreateButton onClick={clickJoin}> Create a Room</CreateButton>
+                    {err ? <Error>{errMsg}</Error> : null}
+                    <hr style={{
+                        color: '#000000',
+                        backgroundColor: '#000000',
+                        height: .5,
+                        width: '100%',
+                        borderColor: '#000000',
+                    }}/>
 
-            <hr style={{
-                color: '#000000',
-                backgroundColor: '#000000',
-                height: .5,
-                width: '100%',
-                borderColor: '#000000'
-            }}/>
 
-            <Row type="flex" justify="space-between" align="middle">
-                <FormGroup>
-                    {Object.entries(rooms).length > 0 &&
-                    <Label> Or join Available:</Label>}
+                    <Row type="flex" justify="space-between" align="middle">
 
-                    {Object.entries(rooms).map(([i, k], index) => <div key={index}>
-                        <Link to={`/room/room_${i}`}> "{i}" with {k.length} users</Link>
-                        </div>)}
-                </FormGroup>
-            </Row>
+                        <FormGroup>
+                            {Object.entries(rooms).length > 0 &&
+                            <Label> Or join Available:</Label>}
 
+                            {Object.entries(rooms).map(([i, k], index) => <div key={index}>
+                                <Link to={`/room/room_${i}`}> "{i}" with {k.length} users</Link>
+                            </div>)}
+                        </FormGroup>
+
+                    </Row>
+
+                </>
+            </Slide>
         </MainContainer>
     );
 };

@@ -14,18 +14,17 @@ const LandingPage = (props) => {
             <Row type="flex" justify="space-between" align="middle">
                 <Col lg={11} md={11} sm={24} xs={24}>
                     <Slide left>
-                        <SvgIcon src={'developer.svg'} />
+                        <SvgIcon src={"waving.svg"} />
                     </Slide>
                 </Col>
                 <Col lg={11} md={11} sm={24} xs={24}>
                     <Slide right>
                         <ContentWrapper>
-                            <h6>{texts.english.title}</h6>
-                            <Content>{texts.english.content}</Content>
+                            <Content>{texts.english.title}</Content>
+                            <h6>{texts.english.content}</h6>
                         </ContentWrapper>
                         <ButtonWrapper>
-                            <Button onClick={() => {props.history.push('/main');}}>Create Chat Room</Button>
-                            <Button>Join Chat Room</Button>
+                            <Button onClick={() => {props.history.push('/main');}}>Join Chat Room</Button>
                         </ButtonWrapper>
                     </Slide>
                 </Col>

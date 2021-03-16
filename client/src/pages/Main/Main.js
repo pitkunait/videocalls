@@ -1,8 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import styled from 'styled-components';
 import socket from '../../socket';
-import { Link } from 'react-router-dom';
-
+import {Link} from 'react-router-dom';
+import {Col} from "antd";
+import SvgIcon from "../../components/shared/SvgIcon/SvgIcon";
+import Slide from "react-reveal/Slide";
+import {texts} from "../../locale/locale";
+import {Content, ContentWrapper} from "../LandingPage/LandingPage";
 
 const Main = (props) => {
     const roomRef = useRef();
@@ -25,7 +29,7 @@ const Main = (props) => {
         socket.emit('list-rooms');
 
 
-        socket.on('FE-error-user-exist', ({ error }) => {
+        socket.on('FE-error-user-exist', ({error}) => {
             if (!error) {
                 const roomName = `room_${roomRef.current.value}`;
                 const userName = userRef.current.value;
@@ -47,26 +51,57 @@ const Main = (props) => {
             setErr(true);
             setErrMsg('Enter Room Name or User Name');
         } else {
-            socket.emit('BE-check-user', { roomId: `room_${roomName}`, userName });
+            socket.emit('BE-check-user', {roomId: `room_${roomName}`, userName});
         }
     }
 
     return (
         <MainContainer>
-            <Row>
-                <Label htmlFor="roomName">Room Name</Label>
-                <Input type="text" id="roomName" ref={roomRef}/>
+            <Row type="flex" justify="space-between" align="middle">
+                <Col lg={24} md={24} sm={24}>
+                    <Slide left>
+                        <SvgIcon src={"developer.svg"}/>
+                    </Slide>
+                </Col>
             </Row>
-            <Row>
-                <Label htmlFor="userName">User Name</Label>
-                <Input type="text" id="userName" ref={userRef}/>
+            <Row type="flex" justify="space-between" align="middle">
+                <Col>
+                    <Slide right>
+                        <FormGroup>
+                            <Col span={24}>
+                                <Label htmlFor="roomName">Room Name</Label>
+                                <Input type="text" id="roomName" ref={roomRef}/>
+
+                                <Label htmlFor="userName">User Name</Label>
+                                <Input type="text" id="userName" ref={userRef}/>
+                            </Col>
+                        </FormGroup>
+                    </Slide>
+                </Col>
+
             </Row>
-            <JoinButton onClick={clickJoin}> Join </JoinButton>
+
+            <CreateButton onClick={clickJoin}> Create a Room</CreateButton>
             {err ? <Error>{errMsg}</Error> : null}
-            Rooms:
-            {Object.entries(rooms).map(([i, k], index) => <div key={index}>
-                <Link to={`/room/room_${i}`}>{i}</Link>
-                : {k.length} users</div>)}
+
+            <hr style={{
+                color: '#000000',
+                backgroundColor: '#000000',
+                height: .5,
+                width: '100%',
+                borderColor: '#000000'
+            }}/>
+
+            <Row type="flex" justify="space-between" align="middle">
+                <FormGroup>
+                    {Object.entries(rooms).length > 0 &&
+                    <Label> Or join Available:</Label>}
+
+                    {Object.entries(rooms).map(([i, k], index) => <div key={index}>
+                        <AvailableRoom to={`/room/room_${i}`}>"{i}" with {k.length} users</AvailableRoom>
+                        </div>)}
+                </FormGroup>
+            </Row>
 
         </MainContainer>
     );
@@ -85,7 +120,8 @@ const Row = styled.div`
   line-height: 35px;
 `;
 
-const Label = styled.label``;
+const Label = styled.label`
+  padding-left: 35px`;
 
 const Input = styled.input`
   width: 150px;
@@ -103,20 +139,50 @@ const Error = styled.div`
   color: #e85a71;
 `;
 
-const JoinButton = styled.button`
+const AvailableRoom = styled.button`
+  height: 40px;
+  margin-top: 35px;
+  width: 50%;
+  outline: none;
+  border: none;
+  border-radius: 15px;
+  color: #d8e9ef;
+  background-color: #2e1b68;
+  font-size: 25px;
+  font-weight: 200;
+
+  :hover {
+    background-color: #f47327;
+    color: #2e1b68;
+    cursor: pointer;
+  }
+`;
+
+const CreateButton = styled.button`
   height: 40px;
   margin-top: 35px;
   outline: none;
   border: none;
   border-radius: 15px;
   color: #d8e9ef;
-  background-color: #4ea1d3;
+  background-color: #2e1b68;
   font-size: 25px;
-  font-weight: 500;
+  font-weight: 300;
 
   :hover {
-    background-color: #7bb1d1;
+    background-color: #f47327;
+    color: #2e1b68;
     cursor: pointer;
+  }
+`;
+
+const FormGroup = styled.form`
+  justify-content: space-around;
+  width: 100%;
+  //max-width: 520px;
+  @media only screen and (max-width: 1045px) {
+    max-width: 100%;
+    margin-top: 2rem;
   }
 `;
 

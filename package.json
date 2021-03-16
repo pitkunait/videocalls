@@ -6,7 +6,4 @@
     "start": "cd server && npm start"
   },
   "homepage": "https://oldtube.herokuapp.com/",
-  "dependencies": {
-    "react-reveal": "^1.2.2"
-  }
 }

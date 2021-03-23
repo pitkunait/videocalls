@@ -356,16 +356,15 @@ const Room = (props) => {
             >
                 <h1>room ID : {roomId}</h1>
                 <h1>Users:</h1>
-                {peersRef.current.map(i=> <h1>{i.peerID}</h1>)}
+                {/*{peersRef.current.map(i=> <h1>{i.peerID}</h1>)}*/}
 
                 {/*{peers.map(iii=><h1>{iii}</h1>)}*/}
                 <button onClick={clickUsers}>close</button>
             </Modal>
 
-            {/*<Chat display={displayChat} roomId={roomId}/>*/}
+            <Chat display={displayChat} roomId={roomId}/>
         </RoomContainer>
     );
-    peersRef.current.map(i=>{console.log(i.peerID)})
 
 };
 

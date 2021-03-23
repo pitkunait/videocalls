@@ -58,27 +58,30 @@ const Main = (props) => {
         <MainContainer>
             <Row type="flex" justify="space-between" align="middle">
                 <Col lg={24} md={24} sm={24}>
-                    <Slide left>
+                    <Slide top>
                         <SvgIcon src={'developer.svg'}/>
                     </Slide>
                 </Col>
             </Row>
+            <FormGroup>
+
             <Row type="flex" justify="space-between" align="middle">
-                <Col>
+                {/*<Col>*/}
                     <Slide right>
-                        <FormGroup>
                             <Col span={24}>
                                 <Label htmlFor="roomName">Room Name</Label>
-                                <Input type="text" id="roomName" ref={roomRef}/>
-
-                                <Label htmlFor="userName">User Name</Label>
-                                <Input type="text" id="userName" ref={userRef}/>
+                                <Input type="text"  id="roomName" ref={roomRef}/>
                             </Col>
-                        </FormGroup>
                     </Slide>
-                </Col>
-
+                    <Slide left>
+                        <Col span={24}>
+                            <Label htmlFor="userName">User Name</Label>
+                            <Input type="text" id="userName" ref={userRef}/>
+                        </Col>
+                    </Slide>
+                {/*</Col>*/}
             </Row>
+            </FormGroup>
 
             <Slide bottom>
                 <>
@@ -130,7 +133,7 @@ const Label = styled.label`
 
 const Input = styled.input`
   width: 150px;
-  height: 35px;
+  height: 25px;
   margin-left: 15px;
   padding-left: 10px;
   outline: none;
@@ -182,10 +185,11 @@ const CreateButton = styled.button`
 `;
 
 const FormGroup = styled.form`
-  justify-content: space-around;
+  //justify-content: space-around;
   width: 100%;
+  //min-width: 600px;
   //max-width: 520px;
-  @media only screen and (max-width: 1045px) {
+  @media only screen {
     max-width: 100%;
     margin-top: 2rem;
   }

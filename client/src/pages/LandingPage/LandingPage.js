@@ -3,10 +3,11 @@ import React from 'react';
 import Container from '../../components/shared/Container/Container';
 import SvgIcon from '../../components/shared/SvgIcon/SvgIcon';
 import Button from '../../components/shared/Button/Button';
-import { Col, Row } from 'antd';
+import {Col, Row} from 'antd';
 import Slide from 'react-reveal/Slide';
 import styled from 'styled-components';
 import { texts } from '../../locale/locale';
+
 
 const LandingPage = (props) => {
     return (
@@ -51,3 +52,13 @@ export const ButtonWrapper = styled.div`
   width: 100%;
 `;
 
+const customStyles = {
+    content : {
+        top                   : '50%',
+        left                  : '50%',
+        right                 : 'auto',
+        bottom                : 'auto',
+        marginRight           : '-50%',
+        transform             : 'translate(-50%, -50%)'
+    }
+};

@@ -4,6 +4,7 @@ import styled from 'styled-components';
 
 const BottomBar = ({
                        clickChat,
+                       clickUsers,
                        goToBack,
                        toggleCameraAudio,
                        userVideoAudio,
@@ -35,6 +36,12 @@ const BottomBar = ({
                 </CameraButton>
             </Left>
             <Center>
+                <ChatButton onClick={clickUsers}>
+                    <div>
+                        <FaIcon className="fas fa-comments"></FaIcon>
+                    </div>
+                    Users
+                </ChatButton>
                 <ChatButton onClick={clickChat}>
                     <div>
                         <FaIcon className="fas fa-comments"></FaIcon>

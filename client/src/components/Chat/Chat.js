@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import socket from '../../socket';
-
+import Modal from 'react-modal';
 
 const Chat = ({ display, roomId }) => {
     const currentUser = sessionStorage.getItem('user');
@@ -34,6 +34,7 @@ const Chat = ({ display, roomId }) => {
     };
 
     return (
+
         <ChatContainer className={display ? '' : 'width0'}>
             <TopHeader>Group Chat Room</TopHeader>
             <ChatArea>
@@ -68,11 +69,22 @@ const Chat = ({ display, roomId }) => {
     );
 };
 
+
+const customStyles = {
+    content : {
+        top                   : '50%',
+        left                  : '50%',
+        right                 : 'auto',
+        bottom                : 'auto',
+        marginRight           : '-50%',
+        transform             : 'translate(-50%, -50%)'
+    }
+};
+
 const ChatContainer = styled.div`
   display: flex;
   flex-direction: column;
-  width: 25%;
-  hieght: 100%;
+  width: 60%;
   background-color: white;
   transition: all 0.5s ease;
   overflow: hidden;

@@ -1,169 +1,173 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { Component, createRef } from 'react';
 import Peer from 'simple-peer';
 import styled from 'styled-components';
 import socket from '../../socket';
 import VideoCard from '../../components/Video/VideoCard';
 import BottomBar from '../../components/BottomBar/BottomBar';
 import Chat from '../../components/Chat/Chat';
-import Modal from "react-modal";
+import Modal from 'react-modal';
 
 
-const Room = (props) => {
-    const currentUser = sessionStorage.getItem('user');
-    const [peers, setPeers] = useState([]);
-    const [userVideoAudio, setUserVideoAudio] = useState({
-        localUser: {video: true, audio: true},
-    });
-    const [displayChat, setDisplayChat] = useState(false);
-    const [screenShare, setScreenShare] = useState(false);
-    const peersRef = useRef([]);
-    const userVideoRef = useRef();
-    const screenTrackRef = useRef();
-    const userStream = useRef();
-    const roomId = props.match.params.roomId;
-    const [displayUsers, setDisplayUsers] = useState(false);
+class Room extends Component {
 
-    useEffect(() => {
-        // Set Back Button Event
-        window.addEventListener('popstate', goToBack);
+    screenTrackRef = createRef();
 
-        // Connect Camera & Mic
-        navigator.mediaDevices
-            .getUserMedia({video: true, audio: true})
-            .then((stream) => {
-                userVideoRef.current.srcObject = stream;
-                userStream.current = stream;
+    state = {
+        justJoined: true,
+        displayUsers: false,
+        screenShare: false,
+        displayChat: false,
+        userVideoAudio: {
+            localUser: { video: true, audio: true },
+        },
+        userStream: null,
+        peers: [],
+        currentUserId: null,
+        roomId: this.props.match.params.roomId,
+    };
 
-                socket.emit('BE-join-room', {roomId, userName: currentUser});
-                socket.on('FE-user-join', (users) => {
-                    // all users
-                    const peers = [];
-                    users.forEach(({userId, info}) => {
-                        let {userName, video, audio} = info;
+    constructor(props) {
+        super(props);
+    }
 
-                        if (userName !== currentUser) {
-                            const peer = createPeer(userId, socket.id, stream);
+    getStream = async() => {
+        return await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    };
 
-                            peer.userName = userName;
-                            peer.peerID = userId;
+    initRoom = async() => {
+        const userStream = await this.getStream();
+        const currentUserId = socket.id;
+        this.setState({ userStream, currentUserId });
+        console.log(this.state.justJoined)
+        socket.on('FE-user-join', this.onUserJoined);
+        socket.on('FE-receive-call', this.onReceiveCall);
+        socket.on('FE-call-accepted', this.onCallAccepted);
+        socket.on('FE-user-leave',({userId}) =>  this.removePeer(userId));
+        socket.on('FE-toggle-camera', this.onToggleCamera);
+        socket.emit('BE-join-room', { roomId: this.state.roomId, userName: this.state.currentUserId });
+    };
 
-                            peersRef.current.push({
-                                peerID: userId,
-                                peer,
-                                userName,
-                            });
-                            peers.push(peer);
+    async componentDidMount() {
+        await this.initRoom();
+    }
 
-                            setUserVideoAudio((preList) => {
-                                return {
-                                    ...preList,
-                                    [peer.userName]: {video, audio},
-                                };
-                            });
-                        }
-                    });
+    componentWillUnmount() {
+        socket.emit('BE-leave-room', { roomId: this.state.roomId })
+    }
 
-                    setPeers(peers);
-                });
-
-                socket.on('FE-receive-call', ({signal, from, info}) => {
-                    let {userName, video, audio} = info;
-                    const peerIdx = findPeer(from);
-
-                    if (!peerIdx) {
-                        const peer = addPeer(signal, from, stream);
-
-                        peer.userName = userName;
-
-                        peersRef.current.push({
-                            peerID: from,
-                            peer,
-                            userName: userName,
-                        });
-                        setPeers((users) => {
-                            return [...users, peer];
-                        });
-                        setUserVideoAudio((preList) => {
-                            return {
-                                ...preList,
-                                [peer.userName]: {video, audio},
-                            };
-                        });
-                    }
-                });
-
-                socket.on('FE-call-accepted', ({signal, answerId}) => {
-                    const peerIdx = findPeer(answerId);
-                    peerIdx.peer.signal(signal);
-                });
-
-                socket.on('FE-user-leave', ({userId, userName}) => {
-                    const peerIdx = findPeer(userId);
-                    peerIdx.peer.destroy();
-                    setPeers((users) => {
-                        users = users.filter((user) => user.peerID !== peerIdx.peer.peerID);
-                        return [...users];
-                    });
-                });
+    onUserJoined = (users) => {
+        console.log('User Joined', users);
+        const justJoined = this.state.justJoined;
+        if (justJoined) {
+            const peers = [];
+            const userVideoAudio = { ...this.state.userVideoAudio };
+            users.forEach(({ userId, info }) => {
+                const { userName, video, audio } = info;
+                if (userId !== this.state.currentUserId && !this.findPeer(userId)) {
+                    const peer = this.createPeer(userId, this.state.currentUserId);
+                    peer.userName = userName;
+                    peer.peerID = userId;
+                    peers.push(peer);
+                    userVideoAudio[peer.userName] = { video, audio };
+                }
             });
+            if (peers.length > 0) {
+                console.log('Updating peers', [...this.state.peers, ...peers]);
+                this.setState({ peers, userVideoAudio });
+            }
+            this.setState({ justJoined: !justJoined });
+        }
 
-        socket.on('FE-toggle-camera', ({userId, switchTarget}) => {
-            const peerIdx = findPeer(userId);
+    };
 
-            setUserVideoAudio((preList) => {
-                let video = preList[peerIdx.userName].video;
-                let audio = preList[peerIdx.userName].audio;
+    onReceiveCall = ({ signal, from, info }) => {
+        let { userName, video, audio } = info;
+        const peerIdx = this.findPeer(from);
+        if (!peerIdx) {
+            console.log('[RECEIVING CALL FROM]', info.userName);
+            const peer = this.receivePeer(signal, from);
+            peer.userName = userName;
+            peer.peerID = userName;
+            const peers = [...this.state.peers, peer];
+            const setUserVideoAudio = { ...this.state.userVideoAudio, [peer.userName]: { video, audio } };
+            this.setState({ peers, setUserVideoAudio });
+        }
+    };
 
-                if (switchTarget === 'video') video = !video;
-                else audio = !audio;
+    onCallAccepted = ({ signal, answerId }) => {
+        const peer = this.findPeer(answerId);
+        peer.signal(signal);
+    };
 
-                return {
-                    ...preList,
-                    [peerIdx.userName]: {video, audio},
-                };
-            });
-        });
+    removePeer = (userId) => {
+        console.log('[PEER LEFT]', userId);
+        const peers = this.state.peers.filter((peer) => peer.peerID !== userId);
+        this.setState({ peers });
+    }
 
-        return () => {
-            socket.disconnect();
-        };
-        // eslint-disable-next-line
-    }, []);
+    onToggleCamera = ({ userId, switchTarget }) => {
+        const peerIdx = this.findPeer(userId);
+        const userVideoAudio = { ...this.state.userVideoAudio };
+        const peer = userVideoAudio[peerIdx.userName];
+        if (switchTarget === 'video') {
+            peer.video = !peer.video;
+        } else {
+            peer.audio = !peer.audio;
+        }
+        this.setState({ userVideoAudio });
+    };
 
-    function createPeer(userId, caller, stream) {
+    createPeer(userId, caller) {
         const peer = new Peer({
             initiator: true,
             trickle: false,
-            stream,
+            stream: this.state.userStream,
         });
 
         peer.on('signal', (signal) => {
+            console.log('CALLING', userId);
             socket.emit('BE-call-user', {
                 userToCall: userId,
                 from: caller,
                 signal,
             });
         });
+
         peer.on('disconnect', () => {
             peer.destroy();
+            this.removePeer(userId)
+        });
+
+        peer.on('stream', (stream) => {
+            console.log('RECEIVING STREAM FROM', userId, stream.id);
+            peer.videoStream = stream;
+            this.setState([...this.state.peers]);
         });
 
         return peer;
     }
 
-    function addPeer(incomingSignal, callerId, stream) {
+    receivePeer(incomingSignal, callerId) {
         const peer = new Peer({
             initiator: false,
             trickle: false,
-            stream,
+            stream: this.state.userStream,
         });
 
         peer.on('signal', (signal) => {
-            socket.emit('BE-accept-call', {signal, to: callerId});
+            socket.emit('BE-accept-call', { signal, to: callerId });
         });
 
-        peer.on('disconnect', () => {
+        peer.on('close', () => {
+            console.log("FADFNKAJFNAJFNAIJIJNJNOUYBIUY")
             peer.destroy();
+            this.removePeer(callerId)
+        });
+
+        peer.on('stream', (stream) => {
+            console.log('RECEIVING STREAM FROM', callerId, stream.id);
+            peer.videoStream = stream;
+            this.setState([...this.state.peers]);
         });
 
         peer.signal(incomingSignal);
@@ -171,200 +175,138 @@ const Room = (props) => {
         return peer;
     }
 
-    function findPeer(id) {
-        return peersRef.current.find((p) => p.peerID === id);
+    findPeer(id) {
+        return this.state.peers.find((p) => p.peerID === id);
     }
 
-    function createUserVideo(peer, index, arr) {
-        return (
-            <VideoBox
-                className={`width-peer${peers.length > 8 ? '' : peers.length}`}
-                onClick={expandScreen}
-                key={index}
-            >
-                {writeUserName(peer.userName)}
-                <FaIcon className="fas fa-expand"/>
-                <VideoCard key={index} peer={peer} number={arr.length}/>
-            </VideoBox>
-        );
-    }
-
-    function writeUserName(userName, index) {
-        if (userVideoAudio.hasOwnProperty(userName)) {
-            if (!userVideoAudio[userName].video) {
-                return <UserName key={userName}>{userName}</UserName>;
-            }
-        }
-    }
-
-    // Open Chat
-    const clickChat = (e) => {
+    clickChat = (e) => {
         e.stopPropagation();
-        setDisplayChat(!displayChat);
+        const displayChat = !this.state.displayChat;
+        this.setState({ displayChat });
     };
 
-    const clickUsers = (e) => {
+    clickUsers = (e) => {
         e.stopPropagation();
-        setDisplayUsers(!displayUsers);
+        const displayUsers = !this.state.displayUsers;
+        this.setState({ displayUsers });
     };
 
-    // BackButton
-    const goToBack = (e) => {
+    goToBack = (e) => {
         e.preventDefault();
-        socket.emit('BE-leave-room', {roomId, leaver: currentUser});
+        socket.emit('BE-leave-room', { roomId: this.state.roomId, leaver: this.state.currentUserId });
         sessionStorage.removeItem('user');
         window.location.href = '/';
     };
 
-    const toggleCameraAudio = (e) => {
-        const target = e.target.getAttribute('data-switch');
-
-        setUserVideoAudio((preList) => {
-            let videoSwitch = preList['localUser'].video;
-            let audioSwitch = preList['localUser'].audio;
-
-            if (target === 'video') {
-                const userVideoTrack = userVideoRef.current.srcObject.getVideoTracks()[0];
-                videoSwitch = !videoSwitch;
-                userVideoTrack.enabled = videoSwitch;
-            } else {
-                const userAudioTrack = userVideoRef.current.srcObject.getAudioTracks()[0];
-                audioSwitch = !audioSwitch;
-
-                if (userAudioTrack) {
-                    userAudioTrack.enabled = audioSwitch;
-                } else {
-                    userStream.current.getAudioTracks()[0].enabled = audioSwitch;
-                }
-            }
-
-            return {
-                ...preList,
-                localUser: {video: videoSwitch, audio: audioSwitch},
-            };
-        });
-
-        socket.emit('BE-toggle-camera-audio', {roomId, switchTarget: target});
+    toggleCameraAudio = (e) => {
+        // const target = e.target.getAttribute('data-switch');
+        //
+        //
+        // setUserVideoAudio((preList) => {
+        //     let videoSwitch = preList['localUser'].video;
+        //     let audioSwitch = preList['localUser'].audio;
+        //
+        //     if (target === 'video') {
+        //         const userVideoTrack = userStream.getVideoTracks()[0];
+        //         videoSwitch = !videoSwitch;
+        //         userVideoTrack.enabled = videoSwitch;
+        //     } else {
+        //         const userAudioTrack = userStream.getAudioTracks()[0];
+        //         audioSwitch = !audioSwitch;
+        //
+        //         if (userAudioTrack) {
+        //             userAudioTrack.enabled = audioSwitch;
+        //         } else {
+        //             userStream.getAudioTracks()[0].enabled = audioSwitch;
+        //         }
+        //     }
+        //
+        //     return {
+        //         ...preList,
+        //         localUser: { video: videoSwitch, audio: audioSwitch },
+        //     };
+        // });
+        //
+        // socket.emit('BE-toggle-camera-audio', { roomId, switchTarget: target });
     };
 
-    const clickScreenSharing = () => {
-        if (!screenShare) {
-            navigator.mediaDevices
-                .getDisplayMedia({cursor: true})
-                .then((stream) => {
-                    const screenTrack = stream.getTracks()[0];
-
-                    peersRef.current.forEach(({peer}) => {
-                        // replaceTrack (oldTrack, newTrack, oldStream);
-                        peer.replaceTrack(
-                            peer.streams[0]
-                                .getTracks()
-                                .find((track) => track.kind === 'video'),
-                            screenTrack,
-                            userStream.current,
-                        );
-                    });
-
-                    // Listen click end
-                    screenTrack.onended = () => {
-                        peersRef.current.forEach(({peer}) => {
-                            peer.replaceTrack(
-                                screenTrack,
-                                peer.streams[0]
-                                    .getTracks()
-                                    .find((track) => track.kind === 'video'),
-                                userStream.current,
-                            );
-                        });
-                        userVideoRef.current.srcObject = userStream.current;
-                        setScreenShare(false);
-                    };
-
-                    userVideoRef.current.srcObject = stream;
-                    screenTrackRef.current = screenTrack;
-                    setScreenShare(true);
-                });
-        } else {
-            screenTrackRef.current.onended();
-        }
+    clickScreenSharing = () => {
+        // if (!screenShare) {
+        //     navigator.mediaDevices
+        //         .getDisplayMedia({ cursor: true })
+        //         .then((stream) => {
+        //             const screenTrack = stream.getTracks()[0];
+        //
+        //             peersRef.current.forEach(({ peer }) => {
+        //                 // replaceTrack (oldTrack, newTrack, oldStream);
+        //                 peer.replaceTrack(
+        //                     peer.streams[0]
+        //                         .getTracks()
+        //                         .find((track) => track.kind === 'video'),
+        //                     screenTrack,
+        //                     userStream,
+        //                 );
+        //             });
+        //
+        //             // Listen click end
+        //             screenTrack.onended = () => {
+        //                 peersRef.current.forEach(({ peer }) => {
+        //                     peer.replaceTrack(
+        //                         screenTrack,
+        //                         peer.streams[0]
+        //                             .getTracks()
+        //                             .find((track) => track.kind === 'video'),
+        //                         userStream,
+        //                     );
+        //                 });
+        //                 setScreenShare(false);
+        //             };
+        //             setUserStream(stream);
+        //             screenTrackRef.current = screenTrack;
+        //             setScreenShare(true);
+        //         });
+        // } else {
+        //     screenTrackRef.current.onended();
+        // }
     };
 
-    const expandScreen = (e) => {
-        const elem = e.target;
+    render() {
+        console.log(this.state.peers)
+        return (
+            <RoomContainer>
+                <VideoAndBarContainer>
+                    <VideoContainer>
+                        <VideoCard stream={this.state.userStream} muted/>
+                        {this.state.peers.map((peer, index) => <VideoCard key={index} stream={peer.videoStream}/>)}
+                    </VideoContainer>
+                    <BottomBar
+                        clickScreenSharing={this.clickScreenSharing}
+                        clickChat={this.clickChat}
+                        clickUsers={this.clickUsers}
+                        goToBack={this.goToBack}
+                        toggleCameraAudio={this.toggleCameraAudio}
+                        userVideoAudio={this.state.userVideoAudio['localUser']}
+                        screenShare={this.screenShare}
+                    />
+                </VideoAndBarContainer>
 
-        if (elem.requestFullscreen) {
-            elem.requestFullscreen();
-        } else if (elem.mozRequestFullScreen) {
-            /* Firefox */
-            elem.mozRequestFullScreen();
-        } else if (elem.webkitRequestFullscreen) {
-            /* Chrome, Safari & Opera */
-            elem.webkitRequestFullscreen();
-        } else if (elem.msRequestFullscreen) {
-            /* IE/Edge */
-            elem.msRequestFullscreen();
-        }
-    };
 
-    return (
-        <RoomContainer>
-            <VideoAndBarContainer>
-                <VideoContainer>
-                    {/* Current User Video */}
-                    <VideoBox
-                        className={`width-peer${peers.length > 8 ? '' : peers.length}`}
-                    >
-                        {userVideoAudio['localUser'].video ? null : (
-                            <UserName>{currentUser}</UserName>
-                        )}
-                        <FaIcon className="fas fa-expand"/>
-                        <MyVideo
-                            onClick={expandScreen}
-                            ref={userVideoRef}
-                            muted
-                            autoPlay
-                            playInline
-                        />
-                    </VideoBox>
-                    {/* Joined User Vidoe */}
-                    {peers &&
-                    peers.map((peer, index, arr) => createUserVideo(peer, index, arr))}
-                </VideoContainer>
-                <BottomBar
-                    clickScreenSharing={clickScreenSharing}
-                    clickChat={clickChat}
-                    clickUsers={clickUsers}
-                    goToBack={goToBack}
-                    toggleCameraAudio={toggleCameraAudio}
-                    userVideoAudio={userVideoAudio['localUser']}
-                    screenShare={screenShare}
-                />
-            </VideoAndBarContainer>
-            {/*<Modal*/}
-            {/*    isOpen={displayChat}*/}
-            {/*    style={modalChatStyle}*/}
-            {/*    onRequestClose={clickChat}*/}
-            {/*>*/}
-            {/*    <Chat display={displayChat} roomId={roomId}/>*/}
-            {/*    <button onClick={clickChat}>close</button>*/}
-            {/*</Modal>*/}
+                <Modal
+                    isOpen={this.displayUsers}
+                    style={modalChatStyle}
+                    onRequestClose={this.clickUsers}
+                >
+                    <h1>room ID : {this.state.roomId}</h1>
+                    <h1>Users:</h1>
+                    {this.state.peers.map((item, index) => <h1 key={index}>{item.peerID}</h1>)}
 
-            <Modal
-                isOpen={displayUsers}
-                style={modalChatStyle}
-                onRequestClose={clickUsers}
-            >
-                <h1>room ID : {roomId}</h1>
-                <h1>Users:</h1>
-                {/*{peersRef.current.map(i=> <h1>{i.peerID}</h1>)}*/}
+                    <button onClick={this.clickUsers}>close</button>
+                </Modal>
 
-                {/*{peers.map(iii=><h1>{iii}</h1>)}*/}
-                <button onClick={clickUsers}>close</button>
-            </Modal>
-
-            <Chat display={displayChat} roomId={roomId}/>
-        </RoomContainer>
-    );
+                <Chat display={this.state.displayChat} roomId={this.state.roomId}/>
+            </RoomContainer>
+        );
+    }
 
 };
 
@@ -408,39 +350,11 @@ const VideoAndBarContainer = styled.div`
   height: 100vh;
 `;
 
-const MyVideo = styled.video``;
-
-const VideoBox = styled.div`
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  > video {
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  :hover {
-    > i {
-      display: block;
-    }
-  }
-`;
-
 const UserName = styled.div`
   position: absolute;
   font-size: calc(20px + 5vmin);
   z-index: 1;
 `;
 
-const FaIcon = styled.i`
-  display: none;
-  position: absolute;
-  right: 15px;
-  top: 15px;
-`;
 
 export default Room;

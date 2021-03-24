@@ -37,7 +37,7 @@ io.on('connection', (socket) => {
 
     socket.on('disconnecting', function(){
         Object.entries(socket.rooms).map(([i,k]) => {
-            socket.to(i).emit('FE-user-leave', { userId: socket.id  });
+            socket.to(i).emit('FE-user-leave', { userId: socket.id });
         })
     });
 

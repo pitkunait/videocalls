@@ -87,6 +87,7 @@ const Main = (props) => {
                 <>
                     <CreateButton onClick={clickJoin}> Create a Room</CreateButton>
                     {err ? <Error>{errMsg}</Error> : null}
+
                     <hr style={{
                         color: '#000000',
                         backgroundColor: '#000000',
@@ -132,8 +133,9 @@ const Label = styled.label`
   padding-left: 35px`;
 
 const Input = styled.input`
+  font-size: 25px;
   width: 150px;
-  height: 25px;
+  height: 30px;
   margin-left: 15px;
   padding-left: 10px;
   outline: none;

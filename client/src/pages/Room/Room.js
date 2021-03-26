@@ -1,4 +1,4 @@
-import React, { Component, createRef } from 'react';
+import React, {Component, createRef, useRef} from 'react';
 import Peer from 'simple-peer';
 import styled from 'styled-components';
 import socket from '../../socket';
@@ -290,15 +290,15 @@ class Room extends Component {
                     />
                 </VideoAndBarContainer>
 
-
                 <Modal
-                    isOpen={this.displayUsers}
+                    isOpen={this.state.displayUsers}
                     style={modalChatStyle}
                     onRequestClose={this.clickUsers}
                 >
                     <h1>room ID : {this.state.roomId}</h1>
-                    <h1>Users:</h1>
-                    {this.state.peers.map((item, index) => <h1 key={index}>{item.peerID}</h1>)}
+                    <h1>Users: </h1>
+                    <h1>ME: {socket.id}</h1>
+                    {this.state.peers.map((item, index) => <h1 key={index}>User {item.peerID}</h1>)}
 
                     <button onClick={this.clickUsers}>close</button>
                 </Modal>

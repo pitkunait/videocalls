@@ -1,32 +1,33 @@
 import React from 'react';
-
-import Container from '../../components/shared/Container/Container';
-import SvgIcon from '../../components/shared/SvgIcon/SvgIcon';
-import Button from '../../components/shared/Button/Button';
-import {Col, Row} from 'antd';
 import Slide from 'react-reveal/Slide';
-import styled from 'styled-components';
 import { texts } from '../../locale/locale';
+import SvgIcon from '../../components/shared/SvgIcon/SvgIcon';
+import { Button, Col, Container, Row } from 'react-bootstrap';
 
 
 const LandingPage = (props) => {
+
+    const onJoinChatClick = () => {
+        props.history.push('/main');
+    };
+
     return (
-        <Container>
-            <Row type="flex" justify="space-between" align="middle">
-                <Col lg={11} md={11} sm={24} xs={24}>
+        <Container className="my-auto">
+            <Row className="align-items-center justify-content-center">
+                <Col sm>
                     <Slide left>
-                        <SvgIcon src={"waving.svg"} />
+                        <SvgIcon width={200} src={'waving.svg'}/>
                     </Slide>
                 </Col>
-                <Col lg={11} md={11} sm={24} xs={24}>
+                <Col sm>
                     <Slide right>
-                        <ContentWrapper>
-                            <Content>{texts.english.title}</Content>
-                            <h6>{texts.english.content}</h6>
-                        </ContentWrapper>
-                        <ButtonWrapper>
-                            <Button onClick={() => {props.history.push('/main');}}>Join Chat Room</Button>
-                        </ButtonWrapper>
+                        <h1>{texts.english.title}</h1>
+                        <h5>{texts.english.content}</h5>
+                        <Button
+                            type="primary"
+                            onClick={onJoinChatClick}>
+                            Join Chat Room
+                        </Button>
                     </Slide>
                 </Col>
             </Row>
@@ -35,30 +36,3 @@ const LandingPage = (props) => {
 };
 
 export default LandingPage;
-
-
-export const Content = styled.p`
-  margin: 1.5rem 0 2rem 0;
-`;
-
-export const ContentWrapper = styled.div`
-  text-align: center;
-  margin-top: 2rem;
-`;
-
-export const ButtonWrapper = styled.div`
-  display: flex;
-  justify-content: space-around;
-  width: 100%;
-`;
-
-const customStyles = {
-    content : {
-        top                   : '50%',
-        left                  : '50%',
-        right                 : 'auto',
-        bottom                : 'auto',
-        marginRight           : '-50%',
-        transform             : 'translate(-50%, -50%)'
-    }
-};

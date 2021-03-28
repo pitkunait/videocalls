@@ -1,17 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
+import React, { useEffect, useState } from 'react';
 import socket from '../../socket';
 import { Link } from 'react-router-dom';
-import { Col } from 'antd';
 import SvgIcon from '../../components/shared/SvgIcon/SvgIcon';
 import Slide from 'react-reveal/Slide';
+import styles from './Main.module.css';
+import { Col, Container, Row, Form, Button } from 'react-bootstrap';
 
 
 const Main = (props) => {
-    const roomRef = useRef();
-    const userRef = useRef();
-    const [err, setErr] = useState(false);
-    const [errMsg, setErrMsg] = useState('');
     const [rooms, setRooms] = useState({});
 
     useEffect(() => {
@@ -26,175 +22,64 @@ const Main = (props) => {
             setRooms(rooms);
         });
         socket.emit('list-rooms');
+    }, []);
 
-
-        socket.on('FE-error-user-exist', ({ error }) => {
-            if (!error) {
-                const roomName = `room_${roomRef.current.value}`;
-                const userName = userRef.current.value;
-
-                sessionStorage.setItem('user', userName);
-                props.history.push(`/room/${roomName}`);
-            } else {
-                setErr(error);
-                setErrMsg('User name already exist');
-            }
-        });
-    }, [props.history]);
-
-    function clickJoin() {
-        const roomName = roomRef.current.value;
-        const userName = userRef.current.value;
-
-        if (!roomName || !userName) {
-            setErr(true);
-            setErrMsg('Enter Room Name or User Name');
-        } else {
-            socket.emit('BE-check-user', { roomId: `room_${roomName}`, userName });
+    function joinRoom(event) {
+        event.preventDefault();
+        const data = Object.fromEntries(new FormData(event.target).entries())
+        if (data.roomName && data.userName) {
+            props.history.push(`/room/room_${data.roomName}`);
         }
     }
 
     return (
-        <MainContainer>
-            <Row type="flex" justify="space-between" align="middle">
-                <Col lg={24} md={24} sm={24}>
-                    <Slide top>
-                        <SvgIcon src={'developer.svg'}/>
+        <Container className="my-auto">
+            <Row className="justify-content-center">
+                <Col sm={6}>
+                    <Slide right>
+                        <SvgIcon width={200} src={'developer.svg'}/>
                     </Slide>
                 </Col>
             </Row>
-            <FormGroup>
 
-            <Row type="flex" justify="space-between" align="middle">
-                {/*<Col>*/}
-                    <Slide right>
-                            <Col span={24}>
-                                <Label htmlFor="roomName">Room Name</Label>
-                                <Input type="text"  id="roomName" ref={roomRef}/>
-                            </Col>
-                    </Slide>
+            <Row className="justify-content-center mt-5">
+                <Col sm={4}>
                     <Slide left>
-                        <Col span={24}>
-                            <Label htmlFor="userName">User Name</Label>
-                            <Input type="text" id="userName" ref={userRef}/>
-                        </Col>
+                        <Form onSubmit={joinRoom}>
+                            <Form.Group controlId="userName">
+                                <Form.Label>Username</Form.Label>
+                                <Form.Control type="text" name={"userName"} placeholder="Username" />
+                            </Form.Group>
+                            <Form.Group controlId="roomName">
+                                <Form.Label>Room name</Form.Label>
+                                <Form.Control type="text" name={"roomName"} placeholder="Room name" />
+                            </Form.Group>
+                            <Button className="btn-block" variant="primary" type="submit">
+                                Join Room
+                            </Button>
+                        </Form>
                     </Slide>
-                {/*</Col>*/}
+                </Col>
             </Row>
-            </FormGroup>
 
+
+            {Object.entries(rooms).length > 0 &&
             <Slide bottom>
-                <>
-                    <CreateButton onClick={clickJoin}> Create a Room</CreateButton>
-                    {err ? <Error>{errMsg}</Error> : null}
-
-                    <hr style={{
-                        color: '#000000',
-                        backgroundColor: '#000000',
-                        height: .5,
-                        width: '100%',
-                        borderColor: '#000000',
-                    }}/>
-
-
-                    <Row type="flex" justify="space-between" align="middle">
-
-                        <FormGroup>
-                            {Object.entries(rooms).length > 0 &&
-                            <Label> Or join Available:</Label>}
-
-                            {Object.entries(rooms).map(([i, k], index) => <div key={index}>
-                                <Link to={`/room/room_${i}`}> "{i}" with {k.length} users</Link>
-                            </div>)}
-                        </FormGroup>
-
-                    </Row>
-
-                </>
+                <Row type="flex" justify="space-between" align="middle">
+                    <hr className={styles.hr}/>
+                    <div>
+                        <h2> Or join Available:</h2>
+                        {Object.entries(rooms).map(([i, k], index) => <div key={index}>
+                            <Link to={`/room/room_${i}`}> "{i}" with {k.length} users</Link>
+                        </div>)}
+                    </div>
+                </Row>
             </Slide>
-        </MainContainer>
+            }
+        </Container>
+
     );
 };
 
-const MainContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const Row = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-top: 15px;
-  line-height: 35px;
-`;
-
-const Label = styled.label`
-  padding-left: 35px`;
-
-const Input = styled.input`
-  font-size: 25px;
-  width: 150px;
-  height: 30px;
-  margin-left: 15px;
-  padding-left: 10px;
-  outline: none;
-  border: none;
-  border-radius: 5px;
-`;
-
-const Error = styled.div`
-  margin-top: 10px;
-  font-size: 20px;
-  color: #e85a71;
-`;
-
-const AvailableRoom = styled.button`
-  height: 40px;
-  margin-top: 35px;
-  width: 50%;
-  outline: none;
-  border: none;
-  border-radius: 15px;
-  color: #d8e9ef;
-  background-color: #2e1b68;
-  font-size: 25px;
-  font-weight: 200;
-
-  :hover {
-    background-color: #f47327;
-    color: #2e1b68;
-    cursor: pointer;
-  }
-`;
-
-const CreateButton = styled.button`
-  height: 40px;
-  margin-top: 35px;
-  outline: none;
-  border: none;
-  border-radius: 15px;
-  color: #d8e9ef;
-  background-color: #2e1b68;
-  font-size: 25px;
-  font-weight: 300;
-
-  :hover {
-    background-color: #f47327;
-    color: #2e1b68;
-    cursor: pointer;
-  }
-`;
-
-const FormGroup = styled.form`
-  //justify-content: space-around;
-  width: 100%;
-  //min-width: 600px;
-  //max-width: 520px;
-  @media only screen {
-    max-width: 100%;
-    margin-top: 2rem;
-  }
-`;
 
 export default Main;

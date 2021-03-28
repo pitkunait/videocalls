@@ -1,4 +1,4 @@
-import React, {Component, createRef, useRef} from 'react';
+import React, {Component, createRef} from 'react';
 import Peer from 'simple-peer';
 import styled from 'styled-components';
 import socket from '../../socket';
@@ -25,10 +25,6 @@ class Room extends Component {
         currentUserId: null,
         roomId: this.props.match.params.roomId,
     };
-
-    constructor(props) {
-        super(props);
-    }
 
     getStream = async() => {
         return await navigator.mediaDevices.getUserMedia({ video: true, audio: true });

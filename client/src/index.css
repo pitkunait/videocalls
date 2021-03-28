@@ -9,7 +9,6 @@ body {
     padding: 0;
     left: 0;
     top: 0;
-    /*font-size: calc(8px + 2vmin);*/
     background-color: #ebeef3;
     font-family: 'Open Sans', sans-serif;
     overflow: hidden;
@@ -18,7 +17,6 @@ body {
 #root {
     min-height: 100vh;
     display: flex;
-    flex-direction: column;
 }
 
 input,

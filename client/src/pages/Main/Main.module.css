@@ -1,7 +1,5 @@
-.hr {
-    color: #000000;
-    background: #000000;
-    height: 1px;
-    width: 100%;
-    border-color: #000000
+.availRooms {
+    border-top: #2e186a solid 2px;
+    border-top-left-radius: 1px;
+    border-top-right-radius: 1px;
 }

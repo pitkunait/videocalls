@@ -24,13 +24,15 @@ const Main = (props) => {
         socket.emit('list-rooms');
     }, []);
 
-    function joinRoom(event) {
+    const joinRoom = (event) => {
         event.preventDefault();
-        const data = Object.fromEntries(new FormData(event.target).entries())
+        const data = Object.fromEntries(new FormData(event.target).entries());
         if (data.roomName && data.userName) {
             props.history.push(`/room/room_${data.roomName}`);
         }
-    }
+    };
+
+    const hasAvailRooms = Object.entries(rooms).length > 0;
 
     return (
         <Container className="my-auto">
@@ -48,11 +50,11 @@ const Main = (props) => {
                         <Form onSubmit={joinRoom}>
                             <Form.Group controlId="userName">
                                 <Form.Label>Username</Form.Label>
-                                <Form.Control type="text" name={"userName"} placeholder="Username" />
+                                <Form.Control type="text" name={'userName'} placeholder="Username"/>
                             </Form.Group>
                             <Form.Group controlId="roomName">
                                 <Form.Label>Room name</Form.Label>
-                                <Form.Control type="text" name={"roomName"} placeholder="Room name" />
+                                <Form.Control type="text" name={'roomName'} placeholder="Room name"/>
                             </Form.Group>
                             <Button className="btn-block" variant="primary" type="submit">
                                 Join Room
@@ -63,18 +65,19 @@ const Main = (props) => {
             </Row>
 
 
-            {Object.entries(rooms).length > 0 &&
-            <Slide bottom>
-                <Row type="flex" justify="space-between" align="middle">
-                    <hr className={styles.hr}/>
-                    <div>
-                        <h2> Or join Available:</h2>
-                        {Object.entries(rooms).map(([i, k], index) => <div key={index}>
-                            <Link to={`/room/room_${i}`}> "{i}" with {k.length} users</Link>
-                        </div>)}
-                    </div>
-                </Row>
-            </Slide>
+            {hasAvailRooms &&
+            <Row className="justify-content-center mt-5">
+                <Col sm={6} className="text-center">
+                    <Slide left>
+                        <div className={`${styles.availRooms} pt-4`}>
+                            <h3>Or join Available:</h3>
+                            {Object.entries(rooms).map(([i, k], index) => <div key={index}>
+                                <Link to={`/room/room_${i}`}>"{i}" with {k.length} users</Link>
+                            </div>)}
+                        </div>
+                    </Slide>
+                </Col>
+            </Row>
             }
         </Container>
 

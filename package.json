@@ -5,9 +5,5 @@
     "heroku-postbuild": "npm run prepare-client && npm run prepare-server",
     "start": "cd server && npm start"
   },
-  "homepage": "https://oldtube.herokuapp.com/",
-  "dependencies": {
-    "bootstrap": "^4.6.0",
-    "react-bootstrap": "^1.5.2"
-  }
+  "homepage": "https://oldtube.herokuapp.com/"
 }

@@ -9,6 +9,8 @@ const Main = (props) => {
         const [rooms, setRooms] = useState({});
         const [roomName, setRoomName] = useState('');
         const [userName, setUserName] = useState('');
+        const [userNameValid, setUserNameValid] = useState(true);
+        const [roomNameValid, setRoomNameValid] = useState(true);
 
         useEffect(() => {
             socket.on('list-rooms', obj => {
@@ -25,6 +27,8 @@ const Main = (props) => {
         }, []);
 
         const createRoom = (event) => {
+            setUserNameValid(!!userName);
+            setRoomNameValid(!!roomName);
             if (roomName && userName) {
                 sessionStorage.setItem('userName', userName)
                 props.history.push(`/room/room_${roomName}`);
@@ -32,8 +36,11 @@ const Main = (props) => {
         };
 
         const joinRoom = (roomName) => {
-            sessionStorage.setItem('userName', userName)
-            props.history.push(`/room/room_${roomName}`);
+            setUserNameValid(!!userName);
+            if (userName) {
+                sessionStorage.setItem('userName', userName)
+                props.history.push(`/room/room_${roomName}`);
+            }
         };
 
         const hasAvailRooms = Object.entries(rooms).length > 0;
@@ -52,8 +59,7 @@ const Main = (props) => {
                     <Col sm={8}>
                         <Slide left>
                             <h3>Enter Your Name</h3>
-                            <FormControl isValid={userName}
-                                         // className={styles.myDiv}
+                            <FormControl isInvalid={!userNameValid}
                                          onChange={event => setUserName(event.target.value)}/>
                         </Slide>
                     </Col>
@@ -62,7 +68,7 @@ const Main = (props) => {
                     <Col sm={8}>
                         <Slide right>
                             <h3>Create Your Room</h3>
-                            <FormControl className={'mb-2'} onChange={event => setRoomName(event.target.value)}/>
+                            <FormControl isInvalid={!roomNameValid} className={'mb-2'} onChange={event => setRoomName(event.target.value)}/>
                             <Button className="btn-block" variant="primary" type="submit" onClick={createRoom}>
                                 Create Room
                             </Button>

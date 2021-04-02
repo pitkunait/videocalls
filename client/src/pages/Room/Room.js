@@ -1,11 +1,11 @@
-import React, {Component, createRef} from 'react';
+import React, { Component, createRef } from 'react';
 import Peer from 'simple-peer';
 import styled from 'styled-components';
 import socket from '../../socket';
 import VideoCard from '../../components/Video/VideoCard';
 import BottomBar from '../../components/BottomBar/BottomBar';
 import Chat from '../../components/Chat/Chat';
-import Modal from 'react-modal';
+import UsersModal from '../../components/UsersModal/UsersModal';
 
 
 class Room extends Component {
@@ -23,6 +23,7 @@ class Room extends Component {
         userStream: null,
         peers: [],
         currentUserId: null,
+        currentUserName: '',
         roomId: this.props.match.params.roomId,
     };
 
@@ -30,25 +31,28 @@ class Room extends Component {
         return await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     };
 
-    initRoom = async() => {
+    initRoom = async(userName) => {
         const userStream = await this.getStream();
         const currentUserId = socket.id;
-        this.setState({ userStream, currentUserId });
-        console.log(this.state.justJoined)
+        this.setState({ userStream, currentUserId, currentUserName: userName });
         socket.on('FE-user-join', this.onUserJoined);
         socket.on('FE-receive-call', this.onReceiveCall);
         socket.on('FE-call-accepted', this.onCallAccepted);
-        socket.on('FE-user-leave',({userId}) =>  this.removePeer(userId));
+        socket.on('FE-user-leave', ({ userId }) => this.removePeer(userId));
         socket.on('FE-toggle-camera', this.onToggleCamera);
-        socket.emit('BE-join-room', { roomId: this.state.roomId, userName: this.state.currentUserId });
+        socket.emit('BE-join-room', { roomId: this.state.roomId, userId: this.state.currentUserId, userName });
     };
 
     async componentDidMount() {
-        await this.initRoom();
+        const userName = sessionStorage.getItem('userName')
+        if (userName) {
+            await this.initRoom(userName);
+        }
+
     }
 
     componentWillUnmount() {
-        socket.emit('BE-leave-room', { roomId: this.state.roomId })
+        socket.emit('BE-leave-room', { roomId: this.state.roomId });
     }
 
     onUserJoined = (users) => {
@@ -64,7 +68,7 @@ class Room extends Component {
                     peer.userName = userName;
                     peer.peerID = userId;
                     peers.push(peer);
-                    userVideoAudio[peer.userName] = { video, audio };
+                    userVideoAudio[peer.peerID] = { video, audio };
                 }
             });
             if (peers.length > 0) {
@@ -77,15 +81,15 @@ class Room extends Component {
     };
 
     onReceiveCall = ({ signal, from, info }) => {
-        let { userName, video, audio } = info;
+        let { userId, userName, video, audio } = info;
         const peerIdx = this.findPeer(from);
         if (!peerIdx) {
             console.log('[RECEIVING CALL FROM]', info.userName);
             const peer = this.receivePeer(signal, from);
             peer.userName = userName;
-            peer.peerID = userName;
+            peer.peerID = userId;
             const peers = [...this.state.peers, peer];
-            const setUserVideoAudio = { ...this.state.userVideoAudio, [peer.userName]: { video, audio } };
+            const setUserVideoAudio = { ...this.state.userVideoAudio, [peer.peerID]: { video, audio } };
             this.setState({ peers, setUserVideoAudio });
         }
     };
@@ -99,12 +103,12 @@ class Room extends Component {
         console.log('[PEER LEFT]', userId);
         const peers = this.state.peers.filter((peer) => peer.peerID !== userId);
         this.setState({ peers });
-    }
+    };
 
     onToggleCamera = ({ userId, switchTarget }) => {
         const peerIdx = this.findPeer(userId);
         const userVideoAudio = { ...this.state.userVideoAudio };
-        const peer = userVideoAudio[peerIdx.userName];
+        const peer = userVideoAudio[peerIdx.peerID];
         if (switchTarget === 'video') {
             peer.video = !peer.video;
         } else {
@@ -131,7 +135,7 @@ class Room extends Component {
 
         peer.on('disconnect', () => {
             peer.destroy();
-            this.removePeer(userId)
+            this.removePeer(userId);
         });
 
         peer.on('stream', (stream) => {
@@ -155,9 +159,8 @@ class Room extends Component {
         });
 
         peer.on('close', () => {
-            console.log("FADFNKAJFNAJFNAIJIJNJNOUYBIUY")
             peer.destroy();
-            this.removePeer(callerId)
+            this.removePeer(callerId);
         });
 
         peer.on('stream', (stream) => {
@@ -272,9 +275,10 @@ class Room extends Component {
             <RoomContainer>
                 <VideoAndBarContainer>
                     <VideoContainer>
-                        <VideoCard stream={this.state.userStream} muted/>
-                        {this.state.peers.map((peer, index) => <VideoCard key={index} stream={peer.videoStream}/>)}
+                        <VideoCard stream={this.state.userStream} muted userName={this.state.currentUserName}/>
+                        {this.state.peers.map((peer, index) => <VideoCard key={index} stream={peer.videoStream} userName={peer.userName}/>)}
                     </VideoContainer>
+
                     <BottomBar
                         clickScreenSharing={this.clickScreenSharing}
                         clickChat={this.clickChat}
@@ -285,40 +289,19 @@ class Room extends Component {
                         screenShare={this.screenShare}
                     />
                 </VideoAndBarContainer>
-
-                <Modal
-                    isOpen={this.state.displayUsers}
-                    style={modalChatStyle}
-                    onRequestClose={this.clickUsers}
-                >
-                    <h1>room ID : {this.state.roomId}</h1>
-                    <h1>Users: </h1>
-                    <h1>ME: {socket.id}</h1>
-                    {this.state.peers.map((item, index) => <h1 key={index}>User {item.peerID}</h1>)}
-
-                    <button onClick={this.clickUsers}>close</button>
-                </Modal>
-
-                <Chat display={this.state.displayChat} roomId={this.state.roomId}/>
+                <UsersModal
+                    displayUsers={this.state.displayUsers}
+                    peers={this.state.peers}
+                    roomId={this.state.roomId}
+                    socketId={socket.id}
+                    clickUsers={this.clickUsers}/>
+                <Chat
+                    display={this.state.displayChat}
+                    roomId={this.state.roomId}/>
             </RoomContainer>
         );
     }
-
-};
-
-const modalChatStyle = styled.div`
-  align-items: end;
-  //display: flex;
-  //width: 100%;
-  //max-height: 100vh;
-  //flex-direction: row;
-  top: 50%;
-  left: 50%;
-  //right: auto;
-  //bottom: auto;
-  margin-right: -50%;
-  transform: translate(-50%, -50%)
-`;
+}
 
 const RoomContainer = styled.div`
   display: flex;
@@ -344,12 +327,6 @@ const VideoAndBarContainer = styled.div`
   position: relative;
   width: 100%;
   height: 100vh;
-`;
-
-const UserName = styled.div`
-  position: absolute;
-  font-size: calc(20px + 5vmin);
-  z-index: 1;
 `;
 
 

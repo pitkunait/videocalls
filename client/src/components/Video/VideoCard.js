@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 
 
@@ -12,6 +12,17 @@ const VideoCard = ({ userName, stream, muted}) => {
     //         }
     //     }
     // }
+
+    const renderVideo = useMemo(() => (
+        <video
+            muted={muted}
+            playsInline
+            autoPlay
+            ref={(e) => {if (e) e.srcObject = stream}}
+        />
+    ), [stream, muted])
+
+    useEffect(() => {console.log('Loaded')}, [])
 
 
     const expandScreen = (e) => {
@@ -32,16 +43,11 @@ const VideoCard = ({ userName, stream, muted}) => {
     return (stream ?
         <VideoBox>
             <p>
-                {stream.id}
+                {userName}
             </p>
             {/*{writeUserName(peer.userName)}*/}
             <FaIcon onClick={expandScreen} className="fas fa-expand"/>
-            <video
-                muted={muted}
-                playsInline
-                autoPlay
-                ref={(e) => {if (e) e.srcObject = stream}}
-            />
+            {renderVideo}
         </VideoBox> : null);
 };
 

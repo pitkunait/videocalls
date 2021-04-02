@@ -1,10 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import socket from '../../socket';
-import {Link} from 'react-router-dom';
 import SvgIcon from '../../components/shared/SvgIcon/SvgIcon';
 import Slide from 'react-reveal/Slide';
 import styles from './Main.module.css';
-import {Col, Container, Row, Form, Button, InputGroup, FormControl} from 'react-bootstrap';
+import {Col, Container, Row, Button, FormControl} from 'react-bootstrap';
 
 const Main = (props) => {
         const [rooms, setRooms] = useState({});
@@ -27,11 +26,13 @@ const Main = (props) => {
 
         const createRoom = (event) => {
             if (roomName && userName) {
+                sessionStorage.setItem('userName', userName)
                 props.history.push(`/room/room_${roomName}`);
             }
         };
 
         const joinRoom = (roomName) => {
+            sessionStorage.setItem('userName', userName)
             props.history.push(`/room/room_${roomName}`);
         };
 

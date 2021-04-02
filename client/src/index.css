@@ -37,3 +37,13 @@ video::-webkit-media-controls {
         font-size: 80%;
     }
 }
+
+.btn-primary {
+    background-color: #2e186a;
+    border: none;
+    color: white;
+}
+
+.btn-primary:hover,.btn-primary:focus,.btn-primary:active {
+    background-color: #4d3e7e!important;
+}

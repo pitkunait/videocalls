@@ -3,7 +3,7 @@ import Slide from 'react-reveal/Slide';
 import { texts } from '../../locale/locale';
 import SvgIcon from '../../components/shared/SvgIcon/SvgIcon';
 import { Button, Col, Container, Row } from 'react-bootstrap';
-
+import styles from './LandingPage.module.css';
 
 const LandingPage = (props) => {
 
@@ -24,7 +24,7 @@ const LandingPage = (props) => {
                         <h1>{texts.english.title}</h1>
                         <h5>{texts.english.content}</h5>
                         <Button
-                            type="primary"
+                            variant={"primary"}
                             onClick={onJoinChatClick}>
                             Join Chat Room
                         </Button>

@@ -82,12 +82,10 @@ const Main = (props) => {
                         <Slide left>
                             <div className={`${styles.availRooms} pt-4`}>
                                 <h3>Join Available</h3>
-                                {Object.entries(rooms).map(([i, k], index) => <
-                                        div key={index}>
-                                        <Button className="btn-block" variant="primary" onClick={() => joinRoom(i)}>
+                                {Object.entries(rooms).map(([i, k], index) =>
+                                        <Button key={index} className="btn-block" variant="primary" onClick={() => joinRoom(i)}>
                                             {i} [{k.length} users]
                                         </Button>
-                                    </div>
                                 )}
                             </div>
                         </Slide>

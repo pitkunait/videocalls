@@ -4,6 +4,10 @@
     border-top-right-radius: 1px;
 }
 
+.availRooms > * {
+    margin-bottom: 10px;
+}
+
 .myDiv{
     border: 2px solid #ea0426!important;
 }

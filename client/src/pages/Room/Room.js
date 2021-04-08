@@ -17,6 +17,7 @@ class Room extends Component {
         displayUsers: false,
         screenShare: false,
         displayChat: false,
+        minimizeVideo: false,
         userVideoAudio: {
             localUser: { video: true, audio: true },
         },
@@ -271,12 +272,19 @@ class Room extends Component {
         // }
     };
 
+    clickMinimizeVideo = (e) => {
+        e.target.style.width = "5%";
+        // e.stopPropagation();
+        // const minimizeVideo = !this.state.minimizeVideo;
+        // this.setState({ minimizeVideo });
+    };
+
     render() {
         console.log(this.state.peers)
         return (
             <RoomContainer>
                 <VideoAndBarContainer>
-                    <VideoContainer>
+                    <VideoContainer onClick={this.clickMinimizeVideo}>
                         <VideoCard stream={this.state.userStream} muted userName={this.state.currentUserName}/>
                         {this.state.peers.map((peer, index) => <VideoCard key={index} stream={peer.videoStream} userName={peer.userName}/>)}
                     </VideoContainer>

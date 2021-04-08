@@ -48,14 +48,14 @@ const BottomBar = ({
                     </div>
                     Chat
                 </ChatButton>
-                <ScreenButton onClick={clickScreenSharing}>
-                    <div>
-                        <FaIcon
-                            className={`fas fa-desktop ${screenShare ? 'sharing' : ''}`}
-                        ></FaIcon>
-                    </div>
-                    Share Screen
-                </ScreenButton>
+                {/*<ScreenButton onClick={clickScreenSharing}>*/}
+                {/*    <div>*/}
+                {/*        <FaIcon*/}
+                {/*            className={`fas fa-desktop ${screenShare ? 'sharing' : ''}`}*/}
+                {/*        ></FaIcon>*/}
+                {/*    </div>*/}
+                {/*    Share Screen*/}
+                {/*</ScreenButton>*/}
             </Center>
             <Right>
                 <StopButton onClick={goToBack}>Stop</StopButton>

@@ -47,6 +47,8 @@ class Room extends Component {
         const userName = sessionStorage.getItem('userName')
         if (userName) {
             await this.initRoom(userName);
+        } else {
+            this.props.history.push('/main')
         }
 
     }

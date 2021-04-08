@@ -44,11 +44,11 @@ class Room extends Component {
     };
 
     async componentDidMount() {
-        const userName = sessionStorage.getItem('userName')
+        const userName = sessionStorage.getItem('userName');
         if (userName) {
             await this.initRoom(userName);
         } else {
-            this.props.history.push('/main')
+            this.props.history.push('/main');
         }
 
     }
@@ -70,7 +70,7 @@ class Room extends Component {
                     peer.userName = userName;
                     peer.peerID = userId;
                     peers.push(peer);
-                    userVideoAudio[peer.peerID] = { video, audio };
+                    userVideoAudio[userId] = { video, audio };
                 }
             });
             if (peers.length > 0) {
@@ -86,12 +86,12 @@ class Room extends Component {
         let { userId, userName, video, audio } = info;
         const peerIdx = this.findPeer(from);
         if (!peerIdx) {
-            console.log('[RECEIVING CALL FROM]', info.userName);
+            console.log('[RECEIVING CALL FROM]', info);
             const peer = this.receivePeer(signal, from);
             peer.userName = userName;
             peer.peerID = userId;
             const peers = [...this.state.peers, peer];
-            const setUserVideoAudio = { ...this.state.userVideoAudio, [peer.peerID]: { video, audio } };
+            const setUserVideoAudio = { ...this.state.userVideoAudio, [userId]: { video, audio } };
             this.setState({ peers, setUserVideoAudio });
         }
     };
@@ -110,6 +110,7 @@ class Room extends Component {
     onToggleCamera = ({ userId, switchTarget }) => {
         const peerIdx = this.findPeer(userId);
         const userVideoAudio = { ...this.state.userVideoAudio };
+        console.log(userId, peerIdx, userVideoAudio)
         const peer = userVideoAudio[peerIdx.peerID];
         if (switchTarget === 'video') {
             peer.video = !peer.video;
@@ -166,7 +167,7 @@ class Room extends Component {
         });
 
         peer.on('stream', (stream) => {
-            console.log('RECEIVING STREAM FROM', callerId, stream.id);
+            console.log('[RECEIVING STREAM FROM]', callerId, stream.id);
             peer.videoStream = stream;
             this.setState([...this.state.peers]);
         });
@@ -200,35 +201,24 @@ class Room extends Component {
     };
 
     toggleCameraAudio = (e) => {
-        // const target = e.target.getAttribute('data-switch');
-        //
-        //
-        // setUserVideoAudio((preList) => {
-        //     let videoSwitch = preList['localUser'].video;
-        //     let audioSwitch = preList['localUser'].audio;
-        //
-        //     if (target === 'video') {
-        //         const userVideoTrack = userStream.getVideoTracks()[0];
-        //         videoSwitch = !videoSwitch;
-        //         userVideoTrack.enabled = videoSwitch;
-        //     } else {
-        //         const userAudioTrack = userStream.getAudioTracks()[0];
-        //         audioSwitch = !audioSwitch;
-        //
-        //         if (userAudioTrack) {
-        //             userAudioTrack.enabled = audioSwitch;
-        //         } else {
-        //             userStream.getAudioTracks()[0].enabled = audioSwitch;
-        //         }
-        //     }
-        //
-        //     return {
-        //         ...preList,
-        //         localUser: { video: videoSwitch, audio: audioSwitch },
-        //     };
-        // });
-        //
-        // socket.emit('BE-toggle-camera-audio', { roomId, switchTarget: target });
+        const target = e.target.getAttribute('data-switch');
+
+        console.log(target);
+        const userVideoAudio = this.state.userVideoAudio;
+        const localUser = userVideoAudio['localUser'];
+
+        if (target === 'video') {
+            const userVideoTrack = this.state.userStream.getVideoTracks()[0];
+            localUser.video = !localUser.video;
+            userVideoTrack.enabled = localUser.video;
+        } else {
+            const userAudioTrack = this.state.userStream.getAudioTracks()[0];
+            localUser.audio = !localUser.audio;
+            userAudioTrack.enabled = localUser.audio;
+        }
+
+        this.setState({ userVideoAudio });
+        // socket.emit('BE-toggle-camera-audio', { roomId: this.state.roomId, switchTarget: target });
     };
 
     clickScreenSharing = () => {
@@ -272,13 +262,15 @@ class Room extends Component {
     };
 
     render() {
-        console.log(this.state.peers)
+        console.log(this.state.peers);
+        console.log(this.state.userVideoAudio);
         return (
             <RoomContainer>
                 <VideoAndBarContainer>
                     <VideoContainer>
                         <VideoCard stream={this.state.userStream} muted userName={this.state.currentUserName}/>
-                        {this.state.peers.map((peer, index) => <VideoCard key={index} stream={peer.videoStream} userName={peer.userName}/>)}
+                        {this.state.peers.map((peer, index) => <VideoCard key={index} stream={peer.videoStream}
+                                                                          userName={peer.userName}/>)}
                     </VideoContainer>
 
                     <BottomBar
@@ -304,6 +296,7 @@ class Room extends Component {
         );
     }
 }
+
 
 const RoomContainer = styled.div`
   display: flex;

@@ -273,10 +273,12 @@ class Room extends Component {
     };
 
     clickMinimizeVideo = (e) => {
-        e.target.style.width = "5%";
-        // e.stopPropagation();
-        // const minimizeVideo = !this.state.minimizeVideo;
-        // this.setState({ minimizeVideo });
+        if (this.state.minimizeVideo) {
+            e.target.style.width = "100%";
+        } else { e.target.style.width = "50%";}
+        e.stopPropagation();
+        const minimizeVideo = !this.state.minimizeVideo;
+        this.setState({ minimizeVideo });
     };
 
     render() {

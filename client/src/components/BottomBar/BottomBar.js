@@ -65,6 +65,7 @@ const BottomBar = ({
 };
 
 const Bar = styled.div`
+  flex: 1;
   position: absolute;
   right: 0;
   bottom: 0;
@@ -131,7 +132,8 @@ const FaIcon = styled.i`
 `;
 
 const StopButton = styled.div`
-  width: 75px;
+  text-align: center;
+  width: 50px;
   height: 30px;
   border: none;
   font-size: 0.9375rem;

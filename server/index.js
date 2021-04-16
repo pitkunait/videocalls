@@ -1,21 +1,14 @@
 const express = require('express');
 const app = express();
+const secure = require('express-force-https');
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 const PORT = process.env.PORT || 3001;
 const path = require('path');
 
-let socketList = {};
 
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.use(function(request, response, next) {
-    if (process.env.NODE_ENV === 'production' && !request.secure) {
-        return response.redirect("https://" + request.headers.host + request.url);
-    }
-
-    next();
-})
+app.use(secure);
 
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../client/build')));
@@ -25,6 +18,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 app.get('/ping', (req, res) => {
+    console.log(req.secure);
     res
         .send({
             success: true,
@@ -34,6 +28,7 @@ app.get('/ping', (req, res) => {
 
 
 // Socket
+let socketList = {};
 io.on('connection', (socket) => {
     console.log(`New User connected: ${socket.id}`);
 
@@ -43,12 +38,11 @@ io.on('connection', (socket) => {
         console.log(`User disconnected: ${socket.id}`);
     });
 
-    socket.on('disconnecting', function(){
-        Object.entries(socket.rooms).map(([i,k]) => {
+    socket.on('disconnecting', function() {
+        Object.entries(socket.rooms).map(([i, k]) => {
             socket.to(i).emit('FE-user-leave', { userId: socket.id });
-        })
+        });
     });
-
 
 
     socket.on('list-rooms', () => {
@@ -79,7 +73,7 @@ io.on('connection', (socket) => {
         // Set User List
         io.sockets.in(roomId).clients((err, clients) => {
             try {
-                const users = clients.map(client => ({ userId: client, info: socketList[client] }))
+                const users = clients.map(client => ({ userId: client, info: socketList[client] }));
                 io.sockets.in(roomId).emit('FE-user-join', users);
             } catch ( e ) {
                 io.sockets.in(roomId).emit('FE-error-user-exist', { err: true });

@@ -9,6 +9,14 @@ let socketList = {};
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(function(request, response, next) {
+    if (process.env.NODE_ENV === 'production' && !request.secure) {
+        return response.redirect("https://" + request.headers.host + request.url);
+    }
+
+    next();
+})
+
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../client/build')));
     app.get('/*', function(req, res) {

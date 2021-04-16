@@ -5,16 +5,15 @@
 }
 
 .videoContainer {
-    flex: 1;
+    /*flex: 1;*/
 
     display: grid;
-    grid-template-columns: repeat( auto-fit, minmax(400px, 1fr) );
-
-
-    /*grid-auto-rows: 100px;*/
-    /*grid-gap: 20px;*/
+    grid-gap: 5px;
+    padding: 5px;
+    grid-template-columns: repeat(auto-fit, minmax(375px, 1fr));
 
     position: absolute;
+    top: 0;
     height: calc(100vh - 50px);
     width: 100%;
 }

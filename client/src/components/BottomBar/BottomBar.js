@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-
+import styles from './BottomBar.module.css'
 
 const BottomBar = ({
                        clickChat,
@@ -12,7 +12,7 @@ const BottomBar = ({
                        screenShare,
                    }) => {
     return (
-        <Bar>
+        <div className={styles.bottomBar}>
             <Left>
                 <CameraButton onClick={toggleCameraAudio} data-switch="video">
                     <div>
@@ -60,23 +60,13 @@ const BottomBar = ({
             <Right>
                 <StopButton onClick={goToBack}>Stop</StopButton>
             </Right>
-        </Bar>
+        </div>
     );
 };
 
-const Bar = styled.div`
-  flex: 1;
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  height: 8%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: 500;
-  background-color: #4ea1d3;
-`;
+
+
+
 const Left = styled.div`
   display: flex;
   align-items: center;

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import styled from 'styled-components';
-
+import styles from './VideoCard.module.css'
 
 const VideoCard = ({ userName, stream, muted}) => {
 
@@ -15,6 +15,7 @@ const VideoCard = ({ userName, stream, muted}) => {
 
     const renderVideo = useMemo(() => (
         <video
+            className={styles.video}
             muted={muted}
             playsInline
             autoPlay
@@ -41,14 +42,14 @@ const VideoCard = ({ userName, stream, muted}) => {
 
 
     return (stream ?
-        <VideoBox>
+        <div className={styles.videoCard}>
             <p>
                 {userName}
             </p>
             {/*{writeUserName(peer.userName)}*/}
             <FaIcon onClick={expandScreen} className="fas fa-expand"/>
             {renderVideo}
-        </VideoBox> : null);
+        </div> : null);
 };
 
 
@@ -60,26 +61,7 @@ const FaIcon = styled.i`
 `;
 
 
-const VideoBox = styled.div`
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
 
-  > video {
-    top: 0;
-    left: 0;
-    width: 75%;
-    height: 75%;
-  }
-
-  :hover {
-    > i {
-      display: block;
-    }
-  }
-`;
 
 
 export default VideoCard;

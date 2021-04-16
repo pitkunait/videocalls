@@ -2,11 +2,11 @@ import React, { Component, createRef } from 'react';
 import Peer from 'simple-peer';
 import styled from 'styled-components';
 import socket from '../../socket';
-import VideoCard from '../../components/Video/VideoCard';
+import VideoCard from '../../components/VideoCard/VideoCard';
 import BottomBar from '../../components/BottomBar/BottomBar';
 import Chat from '../../components/Chat/Chat';
 import UsersModal from '../../components/UsersModal/UsersModal';
-
+import styles from './Room.module.css'
 
 class Room extends Component {
 
@@ -282,14 +282,13 @@ class Room extends Component {
     };
 
     render() {
-        console.log(this.state.peers)
         return (
-            <RoomContainer>
-                <VideoAndBarContainer>
-                    <VideoContainer onClick={this.clickMinimizeVideo}>
+            <div className={styles.container}>
+
+                    <div className={styles.videoContainer}>
                         <VideoCard stream={this.state.userStream} muted userName={this.state.currentUserName}/>
                         {this.state.peers.map((peer, index) => <VideoCard key={index} stream={peer.videoStream} userName={peer.userName}/>)}
-                    </VideoContainer>
+                    </div>
 
                     <BottomBar
                         clickScreenSharing={this.clickScreenSharing}
@@ -300,7 +299,6 @@ class Room extends Component {
                         userVideoAudio={this.state.userVideoAudio['localUser']}
                         screenShare={this.screenShare}
                     />
-                </VideoAndBarContainer>
                 <UsersModal
                     displayUsers={this.state.displayUsers}
                     peers={this.state.peers}
@@ -310,36 +308,10 @@ class Room extends Component {
                 <Chat
                     display={this.state.displayChat}
                     roomId={this.state.roomId}/>
-            </RoomContainer>
+            </div>
         );
     }
 }
-
-const RoomContainer = styled.div`
-  display: flex;
-  width: 100%;
-  max-height: 100vh;
-  flex-direction: row;
-`;
-
-const VideoContainer = styled.div`
-  max-width: 100%;
-  height: 92%;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  align-items: center;
-  padding: 15px;
-  box-sizing: border-box;
-  gap: 10px;
-`;
-
-const VideoAndBarContainer = styled.div`
-  position: relative;
-  width: 100%;
-  height: 100vh;
-`;
 
 
 export default Room;

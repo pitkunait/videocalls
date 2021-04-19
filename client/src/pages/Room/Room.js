@@ -1,4 +1,4 @@
-import React, { Component, createRef } from 'react';
+import React, {Component, createRef} from 'react';
 import Peer from 'simple-peer';
 import styled from 'styled-components';
 import socket from '../../socket';
@@ -19,7 +19,7 @@ class Room extends Component {
         displayChat: false,
         minimizeVideo: false,
         userVideoAudio: {
-            localUser: { video: true, audio: true },
+            localUser: {video: true, audio: true},
         },
         userStream: null,
         peers: [],
@@ -28,20 +28,20 @@ class Room extends Component {
         roomId: this.props.match.params.roomId,
     };
 
-    getStream = async() => {
-        return await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    getStream = async () => {
+        return await navigator.mediaDevices.getUserMedia({video: true, audio: true});
     };
 
-    initRoom = async(userName) => {
+    initRoom = async (userName) => {
         const userStream = await this.getStream();
         const currentUserId = socket.id;
-        this.setState({ userStream, currentUserId, currentUserName: userName });
+        this.setState({userStream, currentUserId, currentUserName: userName});
         socket.on('FE-user-join', this.onUserJoined);
         socket.on('FE-receive-call', this.onReceiveCall);
         socket.on('FE-call-accepted', this.onCallAccepted);
-        socket.on('FE-user-leave', ({ userId }) => this.removePeer(userId));
+        socket.on('FE-user-leave', ({userId}) => this.removePeer(userId));
         socket.on('FE-toggle-camera', this.onToggleCamera);
-        socket.emit('BE-join-room', { roomId: this.state.roomId, userId: this.state.currentUserId, userName });
+        socket.emit('BE-join-room', {roomId: this.state.roomId, userId: this.state.currentUserId, userName});
     };
 
     async componentDidMount() {
@@ -49,13 +49,17 @@ class Room extends Component {
         if (userName) {
             await this.initRoom(userName);
         } else {
-            this.props.history.push('/main');
+            // this.props.history.push(`/name/:${this.state.roomId}`);
+            this.props.history.push({
+                location: "/name",
+                roomdId: this.state.roomId,
+            });
         }
 
     }
 
     componentWillUnmount() {
-        socket.emit('BE-leave-room', { roomId: this.state.roomId });
+        socket.emit('BE-leave-room', {roomId: this.state.roomId});
     }
 
     onUserJoined = (users) => {
@@ -63,28 +67,28 @@ class Room extends Component {
         const justJoined = this.state.justJoined;
         if (justJoined) {
             const peers = [];
-            const userVideoAudio = { ...this.state.userVideoAudio };
-            users.forEach(({ userId, info }) => {
-                const { userName, video, audio } = info;
+            const userVideoAudio = {...this.state.userVideoAudio};
+            users.forEach(({userId, info}) => {
+                const {userName, video, audio} = info;
                 if (userId !== this.state.currentUserId && !this.findPeer(userId)) {
                     const peer = this.createPeer(userId, this.state.currentUserId);
                     peer.userName = userName;
                     peer.peerID = userId;
                     peers.push(peer);
-                    userVideoAudio[userId] = { video, audio };
+                    userVideoAudio[userId] = {video, audio};
                 }
             });
             if (peers.length > 0) {
                 console.log('Updating peers', [...this.state.peers, ...peers]);
-                this.setState({ peers, userVideoAudio });
+                this.setState({peers, userVideoAudio});
             }
-            this.setState({ justJoined: !justJoined });
+            this.setState({justJoined: !justJoined});
         }
 
     };
 
-    onReceiveCall = ({ signal, from, info }) => {
-        let { userId, userName, video, audio } = info;
+    onReceiveCall = ({signal, from, info}) => {
+        let {userId, userName, video, audio} = info;
         const peerIdx = this.findPeer(from);
         if (!peerIdx) {
             console.log('[RECEIVING CALL FROM]', info);
@@ -92,12 +96,12 @@ class Room extends Component {
             peer.userName = userName;
             peer.peerID = userId;
             const peers = [...this.state.peers, peer];
-            const setUserVideoAudio = { ...this.state.userVideoAudio, [userId]: { video, audio } };
-            this.setState({ peers, setUserVideoAudio });
+            const setUserVideoAudio = {...this.state.userVideoAudio, [userId]: {video, audio}};
+            this.setState({peers, setUserVideoAudio});
         }
     };
 
-    onCallAccepted = ({ signal, answerId }) => {
+    onCallAccepted = ({signal, answerId}) => {
         const peer = this.findPeer(answerId);
         peer.signal(signal);
     };
@@ -105,12 +109,12 @@ class Room extends Component {
     removePeer = (userId) => {
         console.log('[PEER LEFT]', userId);
         const peers = this.state.peers.filter((peer) => peer.peerID !== userId);
-        this.setState({ peers });
+        this.setState({peers});
     };
 
-    onToggleCamera = ({ userId, switchTarget }) => {
+    onToggleCamera = ({userId, switchTarget}) => {
         const peerIdx = this.findPeer(userId);
-        const userVideoAudio = { ...this.state.userVideoAudio };
+        const userVideoAudio = {...this.state.userVideoAudio};
         console.log(userId, peerIdx, userVideoAudio)
         const peer = userVideoAudio[peerIdx.peerID];
         if (switchTarget === 'video') {
@@ -118,7 +122,7 @@ class Room extends Component {
         } else {
             peer.audio = !peer.audio;
         }
-        this.setState({ userVideoAudio });
+        this.setState({userVideoAudio});
     };
 
     createPeer(userId, caller) {
@@ -159,7 +163,7 @@ class Room extends Component {
         });
 
         peer.on('signal', (signal) => {
-            socket.emit('BE-accept-call', { signal, to: callerId });
+            socket.emit('BE-accept-call', {signal, to: callerId});
         });
 
         peer.on('close', () => {
@@ -185,18 +189,18 @@ class Room extends Component {
     clickChat = (e) => {
         e.stopPropagation();
         const displayChat = !this.state.displayChat;
-        this.setState({ displayChat });
+        this.setState({displayChat});
     };
 
     clickUsers = (e) => {
         e.stopPropagation();
         const displayUsers = !this.state.displayUsers;
-        this.setState({ displayUsers });
+        this.setState({displayUsers});
     };
 
     goToBack = (e) => {
         e.preventDefault();
-        socket.emit('BE-leave-room', { roomId: this.state.roomId, leaver: this.state.currentUserId });
+        socket.emit('BE-leave-room', {roomId: this.state.roomId, leaver: this.state.currentUserId});
         sessionStorage.removeItem('user');
         window.location.href = '/';
     };
@@ -218,7 +222,7 @@ class Room extends Component {
             userAudioTrack.enabled = localUser.audio;
         }
 
-        this.setState({ userVideoAudio });
+        this.setState({userVideoAudio});
         // socket.emit('BE-toggle-camera-audio', { roomId: this.state.roomId, switchTarget: target });
     };
 
@@ -265,10 +269,12 @@ class Room extends Component {
     clickMinimizeVideo = (e) => {
         if (this.state.minimizeVideo) {
             e.target.style.width = "100%";
-        } else { e.target.style.width = "50%";}
+        } else {
+            e.target.style.width = "50%";
+        }
         e.stopPropagation();
         const minimizeVideo = !this.state.minimizeVideo;
-        this.setState({ minimizeVideo });
+        this.setState({minimizeVideo});
     };
 
     render() {
@@ -277,20 +283,21 @@ class Room extends Component {
         return (
             <div className={styles.container}>
 
-                    <div className={styles.videoContainer}>
-                        <VideoCard stream={this.state.userStream} muted userName={this.state.currentUserName}/>
-                        {this.state.peers.map((peer, index) => <VideoCard key={index} stream={peer.videoStream} userName={peer.userName}/>)}
-                    </div>
+                <div className={styles.videoContainer}>
+                    <VideoCard stream={this.state.userStream} muted userName={this.state.currentUserName}/>
+                    {this.state.peers.map((peer, index) => <VideoCard key={index} stream={peer.videoStream}
+                                                                      userName={peer.userName}/>)}
+                </div>
 
-                    <BottomBar
-                        clickScreenSharing={this.clickScreenSharing}
-                        clickChat={this.clickChat}
-                        clickUsers={this.clickUsers}
-                        goToBack={this.goToBack}
-                        toggleCameraAudio={this.toggleCameraAudio}
-                        userVideoAudio={this.state.userVideoAudio['localUser']}
-                        screenShare={this.screenShare}
-                    />
+                <BottomBar
+                    clickScreenSharing={this.clickScreenSharing}
+                    clickChat={this.clickChat}
+                    clickUsers={this.clickUsers}
+                    goToBack={this.goToBack}
+                    toggleCameraAudio={this.toggleCameraAudio}
+                    userVideoAudio={this.state.userVideoAudio['localUser']}
+                    screenShare={this.screenShare}
+                />
                 <UsersModal
                     displayUsers={this.state.displayUsers}
                     peers={this.state.peers}

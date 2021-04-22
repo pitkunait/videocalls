@@ -13,7 +13,7 @@ const EnterYourName = (props) => {
         setUserNameValid(!!userName);
         if (userName) {
             sessionStorage.setItem('userName', userName)
-            props.history.push(`/room/room_${props.params.roomId}`);
+            props.history.push(`/room/${props.location.state.detail}`);
         }
     };
 

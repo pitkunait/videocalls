@@ -49,10 +49,10 @@ class Room extends Component {
         if (userName) {
             await this.initRoom(userName);
         } else {
-            // this.props.history.push(`/name/:${this.state.roomId}`);
+
             this.props.history.push({
-                location: "/name",
-                roomdId: this.state.roomId,
+                pathname: "/name",
+                state: { detail: this.state.roomId }
             });
         }
 
